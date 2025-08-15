@@ -33,3 +33,15 @@ variable "kv_name" {
   type        = string
   default     = "kv"
 }
+
+variable "github_pat" {
+  description = "GitHub Personal Access Token"
+  type        = string
+  sensitive   = true
+}
+
+variable "github_uri" {
+  description = "GitHub URI"
+  type        = string
+  sensitive   = true
+}

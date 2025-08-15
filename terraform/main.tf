@@ -94,6 +94,17 @@ resource "azurerm_dev_center_environment_type" "dev_center_env_prod" {
   }
 }
 
+resource "azurerm_dev_center_catalog" "dev_center_catalog" {
+  name                = "dc_catalog"
+  resource_group_name = azurerm_resource_group.rg.name
+  dev_center_id       = azurerm_dev_center.dev_center.id
+  catalog_github {
+    branch            = "main"
+    path              = "Environments"
+    uri               = var.github_uri
+    key_vault_key_url = azurerm_key_vault_secret.github_pat.id
+  }
+}
 
 // Creation of multiple dev projects and the corresponding environment types
 
@@ -186,7 +197,14 @@ resource "azurerm_key_vault_access_policy" "kv-ap-user" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  secret_permissions = ["Get", "Set", "List"]
+  secret_permissions = ["Get", "Set", "List", "Delete"]
 }
 
 
+resource "azurerm_key_vault_secret" "github_pat" {
+  name         = "PAT-gh-ade"
+  value        = var.github_pat
+  key_vault_id = azurerm_key_vault.kv.id
+
+  depends_on = [azurerm_key_vault_access_policy.kv-ap-user]
+}
