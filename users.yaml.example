@@ -1,0 +1,28 @@
+# users.yaml - Deployment Environments User Configuration
+# =====================================
+# This file defines additional users who will have access to the Dev Box environment.
+# You need to supply the user's object ID which is used by terraform, the name and email is there for documenation purposes
+#
+#
+# Example Usage 1) One User to be Added
+#
+# users:
+#   - object_id: "user-object-id"
+#     name: "User Name"
+#     email: "user@example.com"
+#
+#
+# Example Usage 2) Multiple Users to be Added
+#
+# users:
+#   - object_id: "user-object-id"
+#     name: "User Name"
+#     email: "user@example.com"
+#   - object_id: "user-object-id"
+#     name: "User Name"
+#     email: "user@example.com"
+#   - object_id: "user-object-id"
+#     name: "User Name"
+#     email: "user@example.com"
+
+users: []

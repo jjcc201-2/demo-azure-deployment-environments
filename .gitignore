@@ -10,3 +10,4 @@ __queuestorage__
 
 # ignore environment files
 /.env
+/users.yaml

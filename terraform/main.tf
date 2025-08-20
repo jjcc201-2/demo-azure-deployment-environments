@@ -14,6 +14,20 @@ resource "azuread_group" "entra-sg" {
   security_enabled = true
 }
 
+# Add current user to the security group 
+resource "azuread_group_member" "entra-user" {
+  group_object_id  = azuread_group.entra-sg.object_id
+  member_object_id = data.azurerm_client_config.current.object_id
+}
+
+# Add optional additional users to the security group
+resource "azuread_group_member" "dev_users" {
+  for_each = toset(local.user_object_ids)
+
+  group_object_id  = azuread_group.entra-sg.object_id
+  member_object_id = each.value
+}
+
 
 module "dev_center" {
   source = "./modules/dev-center"
