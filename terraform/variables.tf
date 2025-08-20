@@ -16,12 +16,6 @@ variable "purpose" {
   default     = "demo"
 }
 
-variable "instantiation" {
-  description = "How the workload was deployed. Used for tagging"
-  type        = string
-  default     = "terraform"
-}
-
 variable "rg_name" {
   description = "The name of the resource group."
   type        = string

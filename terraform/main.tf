@@ -1,10 +1,5 @@
 data "azurerm_client_config" "current" {}
 
-// Create random ID to add as prefix for all resources created
-resource "random_id" "rg_name" {
-  byte_length = 4
-}
-
 
 // Create an Entra security group which will have access to one of the dev projects
 resource "azuread_group" "entra-sg" {
@@ -17,11 +12,7 @@ resource "azuread_group" "entra-sg" {
 resource "azurerm_resource_group" "rg" {
   name     = "${var.rg_name}-${random_id.rg_name.hex}"
   location = var.location
-  tags = {
-    environment   = "${var.environment}"
-    purpose       = "${var.purpose}"
-    instantiation = "${var.instantiation}"
-  }
+  tags     = local.common_tags
 }
 
 
@@ -32,6 +23,7 @@ resource "azurerm_dev_center" "dev_center" {
   location            = azurerm_resource_group.rg.location
   name                = "devcenter-${random_id.rg_name.hex}"
   resource_group_name = azurerm_resource_group.rg.name
+  tags                = local.common_tags
   identity {
     type = "SystemAssigned"
   }
@@ -53,45 +45,26 @@ resource "azurerm_role_assignment" "dev_center_user_access_admin" {
 resource "azurerm_dev_center_environment_type" "dev_center_env_sandbox" {
   name          = "Sandbox"
   dev_center_id = azurerm_dev_center.dev_center.id
+  tags          = local.common_tags
 
-  tags = {
-    environment   = "Sandbox"
-    purpose       = "${var.purpose}"
-    instantiation = "${var.instantiation}"
-  }
 }
 
 resource "azurerm_dev_center_environment_type" "dev_center_env_dev" {
   name          = "Dev"
   dev_center_id = azurerm_dev_center.dev_center.id
-
-  tags = {
-    environment   = "Dev"
-    purpose       = "${var.purpose}"
-    instantiation = "${var.instantiation}"
-  }
+  tags          = local.common_tags
 }
 
 resource "azurerm_dev_center_environment_type" "dev_center_env_test" {
   name          = "Test"
   dev_center_id = azurerm_dev_center.dev_center.id
-
-  tags = {
-    environment   = "Test"
-    purpose       = "${var.purpose}"
-    instantiation = "${var.instantiation}"
-  }
+  tags          = local.common_tags
 }
 
 resource "azurerm_dev_center_environment_type" "dev_center_env_prod" {
   name          = "Prod"
   dev_center_id = azurerm_dev_center.dev_center.id
-
-  tags = {
-    environment   = "Prod"
-    purpose       = "${var.purpose}"
-    instantiation = "${var.instantiation}"
-  }
+  tags          = local.common_tags
 }
 
 resource "azurerm_dev_center_catalog" "dev_center_catalog" {
@@ -108,11 +81,12 @@ resource "azurerm_dev_center_catalog" "dev_center_catalog" {
 
 // Creation of multiple dev projects and the corresponding environment types
 
-resource "azurerm_dev_center_project" "project-a" {
+resource "azurerm_dev_center_project" "project" {
   dev_center_id       = azurerm_dev_center.dev_center.id
   location            = azurerm_resource_group.rg.location
-  name                = "dev-project-a"
+  name                = "dev-project-${random_id.rg_name.hex}"
   resource_group_name = azurerm_resource_group.rg.name
+  tags                = local.common_tags
 
   depends_on = [azurerm_dev_center_environment_type.dev_center_env_dev,
     azurerm_dev_center_environment_type.dev_center_env_test,
@@ -180,6 +154,7 @@ resource "azurerm_key_vault" "kv" {
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "standard"
   purge_protection_enabled = true
+  tags                     = local.common_tags
 }
 
 
