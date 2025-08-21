@@ -38,6 +38,7 @@ module "dev_center" {
   tags                 = local.common_tags # Pass the tags from locals
   github_uri           = var.github_uri
   github_pat_secret_id = module.key_vault.github_pat_secret_id
+  github_path          = var.github_path
 }
 
 module "dev_project" {

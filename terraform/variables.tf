@@ -39,3 +39,8 @@ variable "github_uri" {
   type        = string
   sensitive   = true
 }
+
+variable "github_path" {
+  description = "GitHub path"
+  type        = string
+}

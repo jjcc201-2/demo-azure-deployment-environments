@@ -29,3 +29,8 @@ variable "github_pat_secret_id" {
   description = "Key Vault secret ID for GitHub PAT"
   type        = string
 }
+
+variable "github_path" {
+  description = "GitHub path"
+  type        = string
+}

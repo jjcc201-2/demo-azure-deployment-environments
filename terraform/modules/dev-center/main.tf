@@ -57,7 +57,7 @@ resource "azurerm_dev_center_catalog" "dev_center_catalog" {
 
   catalog_github {
     branch            = "main"
-    path              = "Environments"
+    path              = var.github_path
     uri               = var.github_uri
     key_vault_key_url = var.github_pat_secret_id
   }
