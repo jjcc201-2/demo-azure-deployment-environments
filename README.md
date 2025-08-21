@@ -50,6 +50,12 @@ By the end of this demo, you'll have:
 - A security group for team access control
 - A GitHub-connected catalog for environment templates
 
+![Azure Deployment Environments Architecture Diagram](./assets/ade-diagram.png)
+
+*Figure: High-level architecture of the Azure Deployment Environments demo, showing the relationships between Dev Center, Project, Key Vault, Security Group, and Catalog integration.*
+
+[🔗 View the diagram full-size](./assets/ade-diagram.png)
+
 ## Expected Costs
 
 This demo creates resources that may incur minimal Azure costs. Most components are in free tiers, but Key Vault operations may have small charges.
@@ -227,6 +233,10 @@ This will check the terraform configuration and proceed to spin up the demo reso
 3. **Verify Catalog Connection:**
    - In the Dev Portal, try creating a new environment
    - Your catalog items should be available
+
+![Dev Portal Screenshot](./assets/dev-portal.png)
+
+*Figure: Screenshot of the dev portal when a signed-in user has been given the correct permissions to use the service via Azure RBAC*
 
 ---
 
