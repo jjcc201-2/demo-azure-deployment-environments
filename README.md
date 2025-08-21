@@ -4,13 +4,14 @@
 
 - [Purpose](#purpose)
 - [Infrastructure Overview](#infrastructure-overview)
+- [What You'll Build](#what-youll-build)
+- [Expected Costs](#expected-costs)
 - [Prerequisites](#prerequisites)
-  - [Azure Subscription Requirements](#azure-subscription-requirements)
-  - [GitHub Personal Access Token](#github-personal-access-token)
 - [Getting Started](#getting-started)
   - [Setting up Codespaces (Recommended)](#setting-up-codespaces-recommended)
-  - [Initial Configuration](#initial-configuration)
+  - [Initial Configuration](#initial-configuration-and-deployment)
 - [Usage](#usage)
+- [Next Steps](#next-steps)
 - [Cleanup](#cleanup)
 
 ---
@@ -27,44 +28,54 @@ This demo environment creates a fully functional Azure Deployment Environments i
 
 This Terraform configuration deploys the following Azure resources:
 
-- **Azure Dev Center**: Central management hub for devloper infrastructure
+- **Azure Dev Center**: Central management hub for developer infrastructure
 - **Dev Center Project**: Project workspace for development teams
 - **Azure Key Vault**: Secure storage for GitHub PAT and other secrets
 - **Azure AD Security Group**: Team access management
 - **Role Assignments**: Proper permissions for dev center operations
 
+Azure Deployment Environments works by pulling in a catalog of items written in infra-as-code (Bicep, Terraform etc.). Think of this as the products that your developer will be able to spin up using Azure Deployment Environments. 
+
+For example, you might have a catalog item to deploy an Azure Web App with a Cosmos DB database.
+
+In a real-world enterprise environment, this catalog would likely be a private repository. Therefore, the usage of a GitHub PAT is to connect to the private repository. This PAT will be stored in the Key Vault and accessed by the Dev Center
+
+---
+
+## What You'll Build
+
+By the end of this demo, you'll have:
+- A fully configured Azure Dev Center
+- A development project with catalog integration
+- A security group for team access control
+- A GitHub-connected catalog for environment templates
+
+## Expected Costs
+
+This demo creates resources that may incur minimal Azure costs. Most components are in free tiers, but Key Vault operations may have small charges.
+
+Any product you spin up via an attached catalog through Azure Deployment Environments will incur cost. 
+
 ---
 
 ## Prerequisites
 
-### Azure Subscription Requirements
-
-Before you begin, ensure you have:
-
-1. **Azure Subscription with Owner-level access** - Required for creating resource groups, role assignments, and managing Azure Active Directory objects
-
-2. **Azure Resource Providers Registration** - The following Azure resource providers must be registered in your subscription:
-   - `Microsoft.DevCenter` - For Azure Dev Center resources
-   - `Microsoft.KeyVault` - For Key Vault secrets management
-   - `Microsoft.Authorization` - For role assignments
-   - `Microsoft.Resources` - For resource group management
-
-   You can register these providers using the Azure CLI:
-   ```bash
-   az provider register --namespace Microsoft.DevCenter
-   az provider register --namespace Microsoft.KeyVault
-   az provider register --namespace Microsoft.Authorization
-   az provider register --namespace Microsoft.Resources
-   ```
+### Required Azure Permissions
+- **Azure Subscription**: Owner or Contributor role
+- **Microsoft Entra ID**: Groups Administrator role or higher
 
 
-### GitHub Personal Access Token
+### External Requirements
+- GitHub repository with catalog
+- GitHub Personal Access Token (PAT) with read-access to catalog
 
-You'll need a GitHub Personal Access Token (PAT) with appropriate permissions to access your GitHub repository catalog.
+   If you do not already have a catalog or GitHub PAT:
 
-**Note**: This is used because with Deployment Environments, we can use config-as-code to customise our boxes beyond standard images. In production scenarios, your config-as-code would likely be stored in a private repository. A GitHub PAT would allow your Dev Center to access this repository. 
+   - Fork this [Microsoft quickstart repo](https://github.com/microsoft/devcenter-catalog.git)
 
-For detailed instructions, refer to the [Microsoft documentation on configuring catalogs](https://learn.microsoft.com/en-gb/azure/deployment-environments/how-to-configure-catalog?tabs=GitHubRepoPAT#create-a-personal-access-token-in-github).
+   - Create a GitHub PAT by following the [Microsoft documentation on configuring catalogs](https://learn.microsoft.com/en-gb/azure/deployment-environments/how-to-configure-catalog?tabs=GitHubRepoPAT#create-a-personal-access-token-in-github)
+   - Make sure to copy it down so you don't lose it
+  
 
 ---
 
@@ -86,6 +97,7 @@ GitHub Codespaces provides the easiest way to work with this repository as it co
    - Git
    - All necessary extensions
 
+
 ### Initial Configuration and Deployment
 
 Once your Codespace is running, complete these setup steps:
@@ -94,52 +106,85 @@ Once your Codespace is running, complete these setup steps:
 Authenticate with Azure using the Azure CLI:
 
 ```bash
+# Bash
 az login
 ```
 
 Follow the prompts to complete the authentication process. Ensure you're connected to the correct subscription:
 
 ```bash
+# Bash
 az account show
 ```
 
 If you need to switch subscriptions:
 ```bash
+# Bash
 az account set --subscription "Your Subscription Name or ID"
 ```
 
-#### 2. Environment Configuration
+
+
+#### 2. Resource Provider Set Up
+
+The following Azure resource providers must be registered in your subscription:
+   - `Microsoft.DevCenter` - For Azure Dev Center resources
+   - `Microsoft.KeyVault` - For Key Vault secrets management
+   - `Microsoft.Authorization` - For role assignments
+   - `Microsoft.Resources` - For resource group management
+
+   You can register these providers using the Azure CLI:
+   ```bash
+   az provider register --namespace Microsoft.DevCenter
+   az provider register --namespace Microsoft.KeyVault
+   az provider register --namespace Microsoft.Authorization
+   az provider register --namespace Microsoft.Resources
+   ```
+
+
+
+#### 3. Environment Configuration
 Copy the example environment file and configure your variables:
 
 ```bash
+# Bash
 cp .env.example .env
 ```
 
 Edit the `.env` file with your specific values:
 
 ```bash
+# Your .env file should contain:
 ARM_SUBSCRIPTION_ID=your_azure_subscription_id
 GITHUB_PAT=your_github_personal_access_token
-GITHUB_URI=uri_of_the_github_repo
+GITHUB_URI=https://github.com/your-handle/repo-name.git
+GITHUB_PATH=your_github_path
 ```
 
-**Note**: the GitHub URI will be the URI of this GitHub repository. We'll be specifically targetting the **Tasks** folder which is where the config-as-code is stored. 
+**Note**: if you're using the [Microsoft quickstart repo](https://github.com/microsoft/devcenter-catalog.git), then you would use the following values (make sure to change your handle).
+```bash
+# Bash
+GITHUB_URI=https://github.com/<your-github-handle>/devcenter-catalog.git
+GITHUB_PATH=Environment-Definitions
+```
 
-#### 3. User Configuration [OPTIONAL] 
+
+#### 4. User Configuration [OPTIONAL] 
 
 This demo uses a security group for authorisation to Deployment Environments.
 
 This approach aligns with Azure Dev Projects best practices, enabling precise control over which development teams can access specific projects and catalogs for provisioning Azure infrastructure.
 
-By default, the user that is logged in to Azure (via step 1) is added automatically to the security group. If you would like to add more users, such as a specific developer team, you can do so by populating a users.yaml file. 
+If you would like to add more users aside from yourself, such as a specific developer team, you can do so by populating a `users.yaml` file. 
 
-Copy the example into a new users.yaml file with the command below
+Copy the example into a new `users.yaml` file with the command below
 
 ```bash
+# Bash
 cp users.yaml.example users.yaml
 ```
 
-On line 28 of users.yaml, replace the line of code with the following:
+On line 28 of `users.yaml`, replace the line of code with the following:
 
 ```yaml
 users:
@@ -153,9 +198,10 @@ users:
     email: "user@example.com"
 ```
 
-Replace the object_id value with the object IDs of your users. Add as many users as you need to for the demo. 
+Replace the `object_id` value with the object IDs of your users. Add as many users as you need to for the demo. 
 
-#### 4. Deployment
+
+#### 5. Deployment
 
 To deploy the resources to your Azure environment, run the following script:
 
@@ -168,21 +214,38 @@ This will check the terraform configuration and proceed to spin up the demo reso
 ---
 ## Usage
 
-1. **Verify deployment:**
-   - Check the Azure Portal for created resources
-   - Verify the Dev Center is properly configured
-   - Confirm the security group has appropriate access
+1. **Check Azure Portal:**
+   - Navigate to your resource group
+   - Verify that a Dev Center, Dev Project and Key Vault have been created
+   - Verify that your catalog has successfully synced with Dev Center
 
-2. **Access your Deployment Environments:**
-   - Navigate to the Azure Dev Portal (devportal.microsoft.com)
-   - Sign in with your Azure AD credentials
-   - You should see an option in the portal to create a new environment
+2. **Test Dev Portal Access:**
+   - Go to https://devportal.microsoft.com
+   - Sign in with your Azure account
+   - You should see your project listed
+
+3. **Verify Catalog Connection:**
+   - In the Dev Portal, try creating a new environment
+   - Your catalog items should be available
+
+---
+
+## Next Steps
+
+### Attaching a Private Catalog
+
+As mentioned in the optional pre-requisites, if you would like to attach your own private repository of catalog items and you didn't do so already, you will need to create a GitHub Personal Access Token. 
+
+For detailed instructions on how to set this up, refer to the [Microsoft documentation on configuring catalogs](https://learn.microsoft.com/en-gb/azure/deployment-environments/how-to-configure-catalog?tabs=GitHubRepoPAT#create-a-personal-access-token-in-github).
+
+---
 
 ## Cleanup
 
 To remove all created resources and avoid ongoing costs:
 
 ```bash
+# Bash
 source ./destroy.sh
 ```
 
